@@ -4,7 +4,7 @@
   "description": "広告Botのソースコード",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "run": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,19 @@
   "bugs": {
     "url": "https://github.com/renorari/Discord-ADBot/issues"
   },
-  "homepage": "https://github.com/renorari/Discord-ADBot#readme"
+  "homepage": "https://github.com/renorari/Discord-ADBot#readme",
+  "dependencies": {
+    "@discordjs/builders": "^0.13.0",
+    "@discordjs/rest": "^0.4.1",
+    "discord-api-types": "^0.32.0",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.14.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.0",
+    "eslint-plugin-promise": "^6.0.0"
+  }
 }
