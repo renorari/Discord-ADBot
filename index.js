@@ -2,11 +2,18 @@ const { Client, Intents, MessageEmbed, MessageActionRow, MessageButton } = requi
 const { REST } = require("@discordjs/rest");
 const { Routes } = require("discord-api-types/v9");
 const { SlashCommandBuilder } = require("@discordjs/builders");
+const mysql = require("mysql2");
 require("dotenv").config();
+const db = mysql.createConnection({
+    host: process.env.sqlHost,
+    user: process.env.sqlUser,
+    password: process.env.sqlPassword,
+    database: process.env.sqlDatabase
+});
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 const restClient = new REST({ version: "9" }).setToken(process.env.botToken);
 client.login(process.env.botToken);
-
+db.connect();
 const commands = [
     new SlashCommandBuilder()
         .setName("status")
