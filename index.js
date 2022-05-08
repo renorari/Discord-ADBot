@@ -84,7 +84,12 @@ const commands = [
         .setDescription("ステータスを確認"),
     new SlashCommandBuilder()
         .setName("view")
-        .setDescription("広告を見る"),
+        .setDescription("広告を見る")
+        .addStringOption((option) =>
+            option
+                .setName("ad-id")
+                .setDescription("AD-IDを入力してください")
+        ),
     new SlashCommandBuilder()
         .setName("invite")
         .setDescription("招待リンクを表示")
@@ -134,6 +139,14 @@ client.on("ready", async () => {
                             .setName("ad-id")
                             .setRequired(true)
                             .setDescription("AD-IDを入力してください")
+                    ),
+                new SlashCommandBuilder()
+                    .setName("list")
+                    .setDescription("広告を確認します")
+                    .addUserOption((option) =>
+                        option
+                            .setName("user")
+                            .setDescription("ユーザーを入力してください")
                     )
             ]
         },
@@ -177,32 +190,7 @@ client.on("interactionCreate", async interaction => {
                 ]
             });
         } else if (interaction.commandName == "remove") {// remove
-            if (interaction.options.getString("ad-id", true).split(".")[0] == interaction.member.user.id) {
-                db.query(`delete from ads where adId='${interaction.options.getString("ad-id", true)}';`, async (error) => {
-                    if (error) {
-                        return interaction.editReply({
-                            content: "エラー",
-                            embeds: [
-                                new MessageEmbed()
-                                    .setTitle("エラー")
-                                    .setDescription(error.message)
-                                    .setColor(15548997)
-                            ],
-                            components: []
-                        });
-                    }
-                    await interaction.editReply({
-                        content: "削除しました",
-                        embeds: [
-                            new MessageEmbed()
-                                .setTitle("削除しました")
-                                .setColor(5763719)
-                        ]
-                    });
-                    await wait(5000);
-                    await interaction.deleteReply();
-                });
-            } else {
+            if (interaction.options.getString("ad-id", true).split(".")[0] != interaction.member.user.id && !interaction.member.roles.cache.has("971704400588443660")) {
                 return interaction.editReply({
                     content: "エラー",
                     embeds: [
@@ -214,8 +202,32 @@ client.on("interactionCreate", async interaction => {
                     components: []
                 });
             }
+            db.query(`delete from ads where adId='${interaction.options.getString("ad-id", true)}';`, async (error) => {
+                if (error) {
+                    return interaction.editReply({
+                        content: "エラー",
+                        embeds: [
+                            new MessageEmbed()
+                                .setTitle("エラー")
+                                .setDescription(error.message)
+                                .setColor(15548997)
+                        ],
+                        components: []
+                    });
+                }
+                await interaction.editReply({
+                    content: "削除しました",
+                    embeds: [
+                        new MessageEmbed()
+                            .setTitle("削除しました")
+                            .setColor(5763719)
+                    ]
+                });
+                await wait(5000);
+                await interaction.deleteReply();
+            });
         } else if (interaction.commandName == "view") {// view
-            db.query("select * from ads", async (error, result) => {
+            db.query(`select * from ads${(interaction.options.getString("ad-id")) ? ` where adId='${interaction.options.getString("ad-id")}'` : ""};`, async (error, result) => {
                 if (error) {
                     return interaction.editReply({
                         content: "エラー",
@@ -241,6 +253,41 @@ client.on("interactionCreate", async interaction => {
                     ]
                 });
             });
+        } else if (interaction.commandName == "list") {
+            const user = (interaction.options.getUser("user")) ? interaction.options.getUser("user") : interaction.member.user;
+            db.query(`select * from ads where userId='${user.id}'`, async (error, result) => {
+                if (error) {
+                    return interaction.editReply({
+                        content: "エラー",
+                        embeds: [
+                            new MessageEmbed()
+                                .setTitle("エラー")
+                                .setDescription(error.message)
+                                .setColor(15548997)
+                        ],
+                        components: []
+                    });
+                }
+                if (result.length != 0) {
+                    await interaction.editReply({
+                        embeds: [
+                            new MessageEmbed()
+                                .setTitle(`${user.tag}さんの広告リスト`)
+                                .setColor(5793266)
+                                .setDescription(`**${result.length}個の広告があります**\n\n${result.map((ad) => `AD-ID: ${ad.adId}`).join("\n")}`)
+                        ]
+                    });
+                } else {
+                    await interaction.editReply({
+                        embeds: [
+                            new MessageEmbed()
+                                .setTitle(`${user.tag}さんの広告`)
+                                .setColor(5793266)
+                                .setDescription(`${user.tag}さんは広告を公開していません`)
+                        ]
+                    });
+                }
+            });
         }
     } else if (interaction.isMessageContextMenu()) {
         await interaction.deferReply();
@@ -258,9 +305,9 @@ client.on("interactionCreate", async interaction => {
                 });
             }
             const isAdded = await new Promise((resolve) => {
-                db.query("select * from ads", (error, result) => {
+                db.query(`select * from ads where adId='${interaction.targetMessage.author.id}.${interaction.targetMessage.id}'`, (error, result) => {
                     if (error) throw error;
-                    if (result.map((ad) => ad.adId == `${interaction.targetMessage.author.id}.${interaction.targetMessage.id}`).length) {
+                    if (result.length) {
                         resolve(true);
                     } else {
                         resolve(false);
