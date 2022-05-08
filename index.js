@@ -190,7 +190,7 @@ client.on("interactionCreate", async interaction => {
                 ]
             });
         } else if (interaction.commandName == "remove") {// remove
-            if (interaction.options.getString("ad-id", true).split(".")[0] != interaction.member.user.id && !interaction.member.roles.cache.has("971704400588443660")) {
+            if (interaction.options.getString("ad-id", true).split(".")[0] != interaction.member.user.id && !interaction.member.roles.cache.has("971706193208811610")) {
                 return interaction.editReply({
                     content: "エラー",
                     embeds: [
@@ -363,13 +363,7 @@ client.on("interactionCreate", async interaction => {
     } else if (interaction.isButton()) {
         await interaction.deferUpdate();
         if (interaction.customId == "addad_yes") {// confirm to add ad
-            db.query("insert into ads SET ?;", {
-                text: interaction.message.embeds[0].fields[0].value,
-                adId: interaction.message.embeds[0].fields[1].value,
-                userId: interaction.member.user.id,
-                userTag: interaction.member.user.tag,
-                msgId: interaction.message.embeds[0].fields[1].value.split(".")[1]
-            }, async (error) => {
+            db.query(`select * from ads where userId='${interaction.member.user.id}'`, async (error, result) => {
                 if (error) {
                     return interaction.editReply({
                         content: "エラー",
@@ -382,56 +376,125 @@ client.on("interactionCreate", async interaction => {
                         components: []
                     });
                 }
-                await interaction.editReply({
-                    content: "公開しました!",
-                    embeds: [
-                        new MessageEmbed()
-                            .setTitle("公開しました")
-                            .setColor(5763719)
-                            .setFields([{
-                                "name": "広告",
-                                "value": interaction.message.embeds[0].fields[0].value
-                            },
-                            {
-                                "name": "AD-ID",
-                                "value": interaction.message.embeds[0].fields[1].value
-                            },
-                            ])
-                    ],
-                    components: []
-                });
-                await client.channels.cache.get("972704702766678056").send({
-                    content: "この広告は安全ですか?",
-                    embeds: [
-                        new MessageEmbed()
-                            .setTitle("安全ですか?")
-                            .setDescription("この広告が安全かどうか、確認してください")
-                            .setColor(16705372)
-                            .setFields([{
-                                "name": "公開された広告",
-                                "value": interaction.message.embeds[0].fields[0].value
-                            },
-                            {
-                                "name": "AD-ID",
-                                "value": interaction.message.embeds[0].fields[1].value
-                            },
-                            ])
-                    ],
-                    components: [
-                        new MessageActionRow()
-                            .addComponents(
-                                new MessageButton()
-                                    .setCustomId("check_good")
-                                    .setStyle("SUCCESS")
-                                    .setLabel("安全")
-                            )
-                            .addComponents(
-                                new MessageButton()
-                                    .setCustomId("check_bad")
-                                    .setStyle("DANGER")
-                                    .setLabel("削除")
-                            )
-                    ]
+                db.query(`select * from maxads where userId='${interaction.member.user.id}'`, async (error, _result) => {
+                    if (error) {
+                        return interaction.editReply({
+                            content: "エラー",
+                            embeds: [
+                                new MessageEmbed()
+                                    .setTitle("エラー")
+                                    .setDescription(error.message)
+                                    .setColor(15548997)
+                            ],
+                            components: []
+                        });
+                    }
+                    
+                    if (_result.length != 0 && result.length >= _result[0].maxAds) {
+                        return interaction.editReply({
+                            content: "エラー",
+                            embeds: [
+                                new MessageEmbed()
+                                    .setTitle("エラー")
+                                    .setDescription("最大広告数を超えています\n広告を削除してからもう一度実行してください")
+                                    .setColor(15548997)
+                            ],
+                            components: []
+                        });
+                    } else {
+                        if (_result.length == 0) {
+                            db.query("insert into maxads SET ?;", {
+                                userId: interaction.member.user.id,
+                                userTag: interaction.member.user.tag,
+                                maxAds: 2
+                            }, async (error) => {
+                                if (error) {
+                                    return interaction.editReply({
+                                        content: "エラー",
+                                        embeds: [
+                                            new MessageEmbed()
+                                                .setTitle("エラー")
+                                                .setDescription(error.message)
+                                                .setColor(15548997)
+                                        ],
+                                        components: []
+                                    });
+                                }
+                            });
+                        }
+                        db.query("insert into ads SET ?;", {
+                            text: interaction.message.embeds[0].fields[0].value,
+                            adId: interaction.message.embeds[0].fields[1].value,
+                            userId: interaction.member.user.id,
+                            userTag: interaction.member.user.tag,
+                            msgId: interaction.message.embeds[0].fields[1].value.split(".")[1]
+                        }, async (error) => {
+                            if (error) {
+                                return interaction.editReply({
+                                    content: "エラー",
+                                    embeds: [
+                                        new MessageEmbed()
+                                            .setTitle("エラー")
+                                            .setDescription(error.message)
+                                            .setColor(15548997)
+                                    ],
+                                    components: []
+                                });
+                            }
+                            
+                            await interaction.editReply({
+                                content: "公開しました!",
+                                embeds: [
+                                    new MessageEmbed()
+                                        .setTitle("公開しました")
+                                        .setColor(5763719)
+                                        .setFields([{
+                                            name: "広告",
+                                            value: interaction.message.embeds[0].fields[0].value
+                                        },
+                                        {
+                                            name: "AD-ID",
+                                            value: interaction.message.embeds[0].fields[1].value
+                                        }
+                                        ])
+                                ],
+                                components: []
+                            });
+                            await client.channels.cache.get("972704702766678056").send({
+                                content: "この広告は安全ですか?",
+                                embeds: [
+                                    new MessageEmbed()
+                                        .setTitle("安全ですか?")
+                                        .setDescription("この広告が安全かどうか、確認してください")
+                                        .setColor(16705372)
+                                        .setFields([{
+                                            name: "公開された広告",
+                                            value: interaction.message.embeds[0].fields[0].value
+                                        },
+                                        {
+                                            name: "AD-ID",
+                                            value: interaction.message.embeds[0].fields[1].value
+                                        }
+                                        ])
+                                ],
+                                components: [
+                                    new MessageActionRow()
+                                        .addComponents(
+                                            new MessageButton()
+                                                .setCustomId("check_good")
+                                                .setStyle("SUCCESS")
+                                                .setLabel("安全")
+                                        )
+                                        .addComponents(
+                                            new MessageButton()
+                                                .setCustomId("check_bad")
+                                                .setStyle("DANGER")
+                                                .setLabel("削除")
+                                        )
+                                ]
+                            });
+                        });
+                    }
                 });
             });
         } else if (interaction.customId == "cancel") {// cancel
@@ -483,7 +546,7 @@ client.on("interactionCreate", async interaction => {
 // message
 client.on("messageCreate", (message) => {
     if (message.author.id == client.user.id) return;
-    if (Math.random() < 0.1) {
+    if (Math.random() < 0.05) {
         db.query("select * from ads", (error, result) => {
             if (error) throw error;
             const ad = result[Math.floor(Math.random() * result.length)];
