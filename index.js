@@ -1,4 +1,6 @@
+// wait function
 const wait = require("timers/promises").setTimeout;
+// Discord.js
 const {
     Client,
     Intents,
@@ -6,39 +8,48 @@ const {
     MessageActionRow,
     MessageButton
 } = require("discord.js");
+// Rest Discord.js
 const {
     REST
 } = require("@discordjs/rest");
+// DiscordAPI(v10) Types
 const {
-    Routes
-} = require("discord-api-types/v9");
+    Routes,
+    ApplicationCommandType
+} = require("discord-api-types/v10");
+// Discord.js Builders
 const {
     SlashCommandBuilder,
     ContextMenuCommandBuilder
 } = require("@discordjs/builders");
+// MySQL
 const mysql = require("mysql2");
-const {
-    ApplicationCommandType
-} = require("discord-api-types/v10");
+// load .env
 require("dotenv").config();
+// create connnection to database
 const db = mysql.createConnection({
     host: process.env.sqlHost,
     user: process.env.sqlUser,
     password: process.env.sqlPassword,
     database: process.env.sqlDatabase
 });
+// create DiscordBot clinet
 const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
         Intents.FLAGS.GUILD_MESSAGES
     ]
 });
+// create Rest Discord client
 const restClient = new REST({
     version: "10"
 }).setToken(process.env.botToken);
+// DiscordBot client login
 client.login(process.env.botToken);
+// connect to Databese
 db.connect();
 
+// error handler
 process.on("uncaughtException", (error) => {
     console.error(error);
     client.channels.cache.get("972743114676658196").send({
@@ -53,6 +64,7 @@ process.on("uncaughtException", (error) => {
     });
 });
 
+// ping db
 function dbPing() {
     return new Promise((resolve, reject) => {
         var st = new Date();
@@ -65,6 +77,7 @@ function dbPing() {
         });
     });
 }
+// commands
 const commands = [
     new SlashCommandBuilder()
         .setName("status")
@@ -77,9 +90,11 @@ const commands = [
         .setDescription("招待リンクを表示")
 ];
 
+// ready
 client.on("ready", async () => {
     console.log(`${client.user.tag}にログインしました`);
 
+    // set status
     client.user.setPresence({
         "status": "online",
         "activities": [{
@@ -88,7 +103,18 @@ client.on("ready", async () => {
             "url": "https://www.youtube.com/watch?v=yTqqXM8-AyI&list=UU3FhTjQlRrPohRShkyjZlhA"
         }]
     });
+    setInterval(() => {
+        client.user.setPresence({
+            "status": "online",
+            "activities": [{
+                "name": `adbot.renorari.net | /help | ${client.guilds.cache.size}servers`,
+                "type": "STREAMING",
+                "url": "https://www.youtube.com/watch?v=yTqqXM8-AyI&list=UU3FhTjQlRrPohRShkyjZlhA"
+            }]
+        });
+    }, 60000);
 
+    // set commands
     await restClient.put(
         Routes.applicationCommands(client.user.id), {
             body: commands
@@ -114,10 +140,12 @@ client.on("ready", async () => {
     );
 });
 
+// interaction
 client.on("interactionCreate", async interaction => {
+    // commands
     if (interaction.isCommand()) {
         await interaction.deferReply();
-        if (interaction.commandName == "status") {
+        if (interaction.commandName == "status") {// status
             await interaction.editReply({
                 embeds: [
                     new MessageEmbed()
@@ -135,7 +163,7 @@ client.on("interactionCreate", async interaction => {
                         ])
                 ]
             });
-        } else if (interaction.commandName == "invite") {
+        } else if (interaction.commandName == "invite") {// invite
             await interaction.editReply({
                 content: "どうぞ!",
                 components: [
@@ -148,7 +176,7 @@ client.on("interactionCreate", async interaction => {
                         )
                 ]
             });
-        } else if (interaction.commandName == "remove") {
+        } else if (interaction.commandName == "remove") {// remove
             if (interaction.options.getString("ad-id", true).split(".")[0] == interaction.member.user.id) {
                 db.query(`delete from ads where adId='${interaction.options.getString("ad-id", true)}';`, async (error) => {
                     if (error) {
@@ -186,7 +214,7 @@ client.on("interactionCreate", async interaction => {
                     components: []
                 });
             }
-        } else if (interaction.commandName == "view") {
+        } else if (interaction.commandName == "view") {// view
             db.query("select * from ads", async (error, result) => {
                 if (error) {
                     return interaction.editReply({
@@ -216,7 +244,7 @@ client.on("interactionCreate", async interaction => {
         }
     } else if (interaction.isMessageContextMenu()) {
         await interaction.deferReply();
-        if (interaction.commandName == "広告として追加") {
+        if (interaction.commandName == "広告として追加") {// add ad
             if (interaction.targetMessage.author.id != interaction.member.id) {
                 return interaction.editReply({
                     content: "エラー",
@@ -287,7 +315,7 @@ client.on("interactionCreate", async interaction => {
         }
     } else if (interaction.isButton()) {
         await interaction.deferUpdate();
-        if (interaction.customId == "addad_yes") {
+        if (interaction.customId == "addad_yes") {// confirm to add ad
             db.query("insert into ads SET ?;", {
                 text: interaction.message.embeds[0].fields[0].value,
                 adId: interaction.message.embeds[0].fields[1].value,
@@ -359,7 +387,7 @@ client.on("interactionCreate", async interaction => {
                     ]
                 });
             });
-        } else if (interaction.customId == "cancel") {
+        } else if (interaction.customId == "cancel") {// cancel
             await interaction.message.edit({
                 content: "キャンセルしました",
                 embeds: [],
@@ -367,7 +395,7 @@ client.on("interactionCreate", async interaction => {
             });
             await wait(5000);
             await interaction.message.delete();
-        } else if (interaction.customId == "check_good") {
+        } else if (interaction.customId == "check_good") {// good ad
             await interaction.editReply({
                 content: "安全とマークしました",
                 embeds: [],
@@ -375,7 +403,7 @@ client.on("interactionCreate", async interaction => {
             });
             await wait(5000);
             await interaction.message.delete();
-        } else if (interaction.customId == "check_bad") {
+        } else if (interaction.customId == "check_bad") {// bad ad
             db.query(`delete from ads where adId='${interaction.message.embeds[0].fields[1].value}';`, async (error) => {
                 if (error) {
                     return interaction.editReply({
@@ -405,6 +433,7 @@ client.on("interactionCreate", async interaction => {
     }
 });
 
+// message
 client.on("messageCreate", (message) => {
     if (message.author.id == client.user.id) return;
     if (Math.random() < 0.1) {
