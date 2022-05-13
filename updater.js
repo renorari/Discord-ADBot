@@ -1,6 +1,7 @@
 const fs = require("fs");
 const cp = require("child_process");
-const github_handler = require("github-webhook-handler")({ path: "/github_webhook", secret: "adbot8555" });
+require("dotenv").config();
+const github_handler = require("github-webhook-handler")({ path: "/adbot_github", secret: process.env.github_secret });
 github_handler.on("push", () => {
     try {
         fs.unlinkSync("package-lock.json");
@@ -12,3 +13,7 @@ github_handler.on("push", () => {
     cp.execSync("npm install");
     process.exit();
 });
+
+module.exports = {
+    "githubHandler": github_handler
+};

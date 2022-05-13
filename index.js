@@ -1,5 +1,10 @@
+// Path
+const path = require("path");
 // wait function
 const wait = require("timers/promises").setTimeout;
+// Hapi
+const Hapi = require("@hapi/hapi");
+const Inert = require("@hapi/inert");
 // Discord.js
 const {
     Client,
@@ -24,10 +29,10 @@ const {
 } = require("@discordjs/builders");
 // MySQL
 const mysql = require("mysql2");
+// load updater
+const { githubHandler } = require("./updater");
 // load .env
 require("dotenv").config();
-// load updater
-require("./updater");
 // create connnection to database
 const db = mysql.createConnection({
     host: process.env.sqlHost,
@@ -47,7 +52,7 @@ const restClient = new REST({
     version: "10"
 }).setToken(process.env.botToken);
 // DiscordBot client login
-client.login(process.env.botToken);
+//client.login(process.env.botToken);
 // connect to Databese
 db.connect();
 
@@ -391,7 +396,7 @@ client.on("interactionCreate", async interaction => {
                             components: []
                         });
                     }
-                    
+
                     if (_result.length != 0 && result.length >= _result[0].maxAds) {
                         return interaction.editReply({
                             content: "エラー",
@@ -443,7 +448,7 @@ client.on("interactionCreate", async interaction => {
                                     components: []
                                 });
                             }
-                            
+
                             await interaction.editReply({
                                 content: "公開しました!",
                                 embeds: [
@@ -567,3 +572,41 @@ client.on("messageCreate", (message) => {
         });
     }
 });
+
+/* ======================================== */
+/* ============以下ウェブサイト============= */
+/* ======================================== */
+
+(async () => {
+
+    const server = Hapi.server({
+        port: (process.env.PORT || 1055),
+        host: "localhost",
+        routes: {
+            files: {
+                relativeTo: path.join(__dirname, "public")
+            }
+        }
+    });
+
+    await server.register(Inert);
+
+    server.route({
+        method: "GET",
+        path: "/{param*}",
+        handler: {
+            directory: {
+                path: ".",
+                redirectToSlash: true
+            }
+        }
+    });
+    server.route({
+        method: "*",
+        path: "/adbot_github",
+        handler: githubHandler
+    });
+
+    await server.start();
+    console.log("Server running on %s", server.info.uri);
+})();
