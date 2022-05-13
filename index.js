@@ -26,6 +26,8 @@ const {
 const mysql = require("mysql2");
 // load .env
 require("dotenv").config();
+// load updater
+require("./updater");
 // create connnection to database
 const db = mysql.createConnection({
     host: process.env.sqlHost,
