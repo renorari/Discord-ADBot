@@ -639,7 +639,6 @@ client.on("messageCreate", (message) => {
 
     const server = Hapi.server({
         port: (process.env.PORT || 1055),
-        host: "adbot.renorari.net",
         routes: {
             files: {
                 relativeTo: path.join(__dirname, "public")
@@ -719,7 +718,9 @@ client.on("messageCreate", (message) => {
     server.route({
         method: "*",
         path: "/adbot_github",
-        handler: githubHandler
+        handler: (res) => {
+            return githubHandler(res);
+        }
     });
     server.route({
         method: "GET",
