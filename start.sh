@@ -1,2 +1,2 @@
-cd /home/renorari/kana
+cd /home/renorari/Discord-ADBot
 node index.js
