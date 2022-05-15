@@ -2,6 +2,8 @@
 const path = require("path");
 // wait function
 const wait = require("timers/promises").setTimeout;
+// node-fetch
+const fetch = require("node-fetch");
 // Hapi
 const Hapi = require("@hapi/hapi");
 const Inert = require("@hapi/inert");
@@ -52,7 +54,7 @@ const restClient = new REST({
     version: "10"
 }).setToken(process.env.botToken);
 // DiscordBot client login
-//client.login(process.env.botToken);
+client.login(process.env.botToken);
 // connect to Databese
 db.connect();
 
@@ -150,6 +152,14 @@ client.on("ready", async () => {
                 new SlashCommandBuilder()
                     .setName("list")
                     .setDescription("広告を確認します")
+                    .addUserOption((option) =>
+                        option
+                            .setName("user")
+                            .setDescription("ユーザーを入力してください")
+                    ),
+                new SlashCommandBuilder()
+                    .setName("maxads")
+                    .setDescription("残りの広告枠を確認します")
                     .addUserOption((option) =>
                         option
                             .setName("user")
@@ -294,6 +304,54 @@ client.on("interactionCreate", async interaction => {
                         ]
                     });
                 }
+            });
+        } else if (interaction.commandName == "maxads") {
+            const user = (interaction.options.getUser("user")) ? interaction.options.getUser("user") : interaction.member.user;
+            db.query(`select * from ads where userId='${user.id}'`, async (error, result) => {
+                if (error) {
+                    return interaction.editReply({
+                        content: "エラー",
+                        embeds: [
+                            new MessageEmbed()
+                                .setTitle("エラー")
+                                .setDescription(error.message)
+                                .setColor(15548997)
+                        ],
+                        components: []
+                    });
+                }
+                db.query(`select * from maxads where userId='${interaction.member.user.id}'`, async (error, _result) => {
+                    if (_result.length == 0) {
+                        db.query("insert into maxads SET ?;", {
+                            userId: interaction.member.user.id,
+                            userTag: interaction.member.user.tag,
+                            maxAds: 2
+                        }, async (error) => {
+                            if (error) {
+                                return interaction.editReply({
+                                    content: "エラー",
+                                    embeds: [
+                                        new MessageEmbed()
+                                            .setTitle("エラー")
+                                            .setDescription(error.message)
+                                            .setColor(15548997)
+                                    ],
+                                    components: []
+                                });
+                            }
+
+                        });
+                    } else {
+                        await interaction.editReply({
+                            embeds: [
+                                new MessageEmbed()
+                                    .setTitle(`${user.tag}さんの広告枠`)
+                                    .setColor(5793266)
+                                    .setDescription(`${_result[0].maxAds}枠中${result.length}枠(${Math.floor(result.length / Math.floor(_result[0].maxAds) * 1000) / 10}%)使用中`)
+                            ]
+                        });
+                    }
+                });
             });
         }
     } else if (interaction.isMessageContextMenu()) {
@@ -599,6 +657,63 @@ client.on("messageCreate", (message) => {
                 path: ".",
                 redirectToSlash: true
             }
+        }
+    });
+    server.route({
+        method: "GET",
+        path: "/assets/{param*}",
+        handler: {
+            directory: {
+                path: "../assets/",
+                redirectToSlash: true
+            }
+        }
+    });
+    server.route({
+        method: "GET",
+        path: "/api/discord_authorization/",
+        handler: async (request, response) => {
+            return await new Promise((resolve) => {
+                fetch(" https://discordapp.com/api/oauth2/token", {
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    "body": `client_id=${client.user.id}&client_secret=${process.env.Oauth2_secret}&grant_type=authorization_code&code=${request.query.code}&redirect_uri=https://adbot.renorari.net/api/discord_authorization/`
+                }).then(res => res.json()).then(data => {
+                    fetch("https://discord.com/api/users/@me", {
+                        headers: {
+                            Authorization: `${data.token_type} ${data.access_token}`,
+                        },
+                    })
+                        .then(result => result.json())
+                        .then(userData => {
+                            const { id, username, discriminator } = userData;
+                            db.query(`select * from maxads where userId='${id}'`, async (error, result) => {
+                                if (error) resolve(error);
+                                if (result.length == 0) {
+                                    db.query("insert into maxads SET ?;", {
+                                        userId: id,
+                                        userTag: `${username}#${discriminator}`,
+                                        maxAds: 2.5
+                                    }, async (error) => {
+                                        if (error) resolve(error);
+                                        resolve(response.redirect("https://discord.com/oauth2/authorized"));
+                                    });
+                                } else {
+                                    db.query(`update from maxads where userId=${id} SET ?;`, {
+                                        userId: id,
+                                        userTag: `${username}#${discriminator}`,
+                                        maxAds: result[0].maxAds + 0.5
+                                    }, async (error) => {
+                                        if (error) resolve(error);
+                                        resolve(response.redirect("https://discord.com/oauth2/authorized"));
+                                    });
+                                }
+                            });
+                        });
+                });
+            });
         }
     });
     server.route({
