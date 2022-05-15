@@ -112,7 +112,7 @@ client.on("ready", async () => {
     client.user.setPresence({
         "status": "online",
         "activities": [{
-            "name": `adbot.renorari.net | /help | ${client.guilds.cache.size}servers`,
+            "name": `adbot.renorari.net | ゆっくりしていってね! | /help | ${client.guilds.cache.size}servers`,
             "type": "STREAMING",
             "url": "https://www.youtube.com/watch?v=yTqqXM8-AyI&list=UU3FhTjQlRrPohRShkyjZlhA"
         }]
@@ -121,7 +121,7 @@ client.on("ready", async () => {
         client.user.setPresence({
             "status": "online",
             "activities": [{
-                "name": `adbot.renorari.net | /help | ${client.guilds.cache.size}servers`,
+                "name": `adbot.renorari.net | ゆっくりしていってね! | /help | ${client.guilds.cache.size}servers`,
                 "type": "STREAMING",
                 "url": "https://www.youtube.com/watch?v=yTqqXM8-AyI&list=UU3FhTjQlRrPohRShkyjZlhA"
             }]
