@@ -455,7 +455,7 @@ client.on("interactionCreate", async interaction => {
                         });
                     }
 
-                    if (_result.length != 0 && result.length >= _result[0].maxAds) {
+                    if (_result.length != 0 && result.length >= Math.floor(_result[0].maxAds)) {
                         return interaction.editReply({
                             content: "エラー",
                             embeds: [
