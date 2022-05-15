@@ -643,6 +643,9 @@ client.on("messageCreate", (message) => {
             files: {
                 relativeTo: path.join(__dirname, "public")
             }
+        },
+        state: {
+            ignoreErrors: true
         }
     });
 
