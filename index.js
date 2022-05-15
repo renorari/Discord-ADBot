@@ -703,11 +703,7 @@ client.on("messageCreate", (message) => {
                                         resolve(response.redirect("https://discord.com/oauth2/authorized"));
                                     });
                                 } else {
-                                    db.query(`update from maxads where userId=${id} SET ?;`, {
-                                        userId: id,
-                                        userTag: `${username}#${discriminator}`,
-                                        maxAds: result[0].maxAds + 0.5
-                                    }, async (error) => {
+                                    db.query(`update maxads SET maxAds=${result[0].maxAds + 0.5} where userId=${id};`, async (error) => {
                                         if (error) resolve(error);
                                         resolve(response.redirect("https://discord.com/oauth2/authorized"));
                                     });
