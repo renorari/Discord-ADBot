@@ -126,6 +126,9 @@ client.on("ready", async () => {
                 "url": "https://www.youtube.com/watch?v=yTqqXM8-AyI&list=UU3FhTjQlRrPohRShkyjZlhA"
             }]
         });
+        db.query("SELECT 1;", (error) => {
+            throw error;
+        });
     }, 60000);
 
     // set commands
@@ -717,8 +720,9 @@ client.on("messageCreate", (message) => {
     server.route({
         method: "*",
         path: "/adbot_github",
-        handler: (res) => {
-            return githubHandler(res);
+        handler: (res, req) => {
+            githubHandler(res,req);
+            return "ok";
         }
     });
     server.route({
