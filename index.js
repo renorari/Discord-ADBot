@@ -323,38 +323,36 @@ client.on("interactionCreate", async interaction => {
                         components: []
                     });
                 }
-                db.query(`select * from maxads where userId='${interaction.member.user.id}'`, async (error, _result) => {
-                    if (_result.length == 0) {
-                        db.query("insert into maxads SET ?;", {
-                            userId: interaction.member.user.id,
-                            userTag: interaction.member.user.tag,
-                            maxAds: 2
-                        }, async (error) => {
-                            if (error) {
-                                return interaction.editReply({
-                                    content: "エラー",
-                                    embeds: [
-                                        new MessageEmbed()
-                                            .setTitle("エラー")
-                                            .setDescription(error.message)
-                                            .setColor(15548997)
-                                    ],
-                                    components: []
-                                });
-                            }
+                if (result.length == 0) {
+                    db.query("insert into maxads SET ?;", {
+                        userId: user.id,
+                        userTag: user.tag,
+                        maxAds: 2
+                    }, async (error) => {
+                        if (error) {
+                            return interaction.editReply({
+                                content: "エラー",
+                                embeds: [
+                                    new MessageEmbed()
+                                        .setTitle("エラー")
+                                        .setDescription(error.message)
+                                        .setColor(15548997)
+                                ],
+                                components: []
+                            });
+                        }
 
-                        });
-                    } else {
-                        await interaction.editReply({
-                            embeds: [
-                                new MessageEmbed()
-                                    .setTitle(`${user.tag}さんの広告枠`)
-                                    .setColor(5793266)
-                                    .setDescription(`${_result[0].maxAds}枠中${result.length}枠(${Math.floor(result.length / Math.floor(_result[0].maxAds) * 1000) / 10}%)使用中`)
-                            ]
-                        });
-                    }
-                });
+                    });
+                } else {
+                    await interaction.editReply({
+                        embeds: [
+                            new MessageEmbed()
+                                .setTitle(`${user.tag}さんの広告枠`)
+                                .setColor(5793266)
+                                .setDescription(`${result[0].maxAds}枠中${result.length}枠(${Math.floor(result.length / Math.floor(result[0].maxAds) * 1000) / 10}%)使用中`)
+                        ]
+                    });
+                }
             });
         }
     } else if (interaction.isMessageContextMenu()) {
