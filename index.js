@@ -66,7 +66,7 @@ process.on("uncaughtException", (error) => {
         embeds: [
             new MessageEmbed()
                 .setTitle("エラー")
-                .setDescription(error.message)
+                .setDescription((error.message || "不明なエラー"))
                 .setColor(15548997)
         ],
         components: []
@@ -229,7 +229,7 @@ client.on("interactionCreate", async interaction => {
                         embeds: [
                             new MessageEmbed()
                                 .setTitle("エラー")
-                                .setDescription(error.message)
+                                .setDescription((error.message || "不明なエラー"))
                                 .setColor(15548997)
                         ],
                         components: []
@@ -254,7 +254,7 @@ client.on("interactionCreate", async interaction => {
                         embeds: [
                             new MessageEmbed()
                                 .setTitle("エラー")
-                                .setDescription(error.message)
+                                .setDescription((error.message || "不明なエラー"))
                                 .setColor(15548997)
                         ],
                         components: []
@@ -282,7 +282,7 @@ client.on("interactionCreate", async interaction => {
                         embeds: [
                             new MessageEmbed()
                                 .setTitle("エラー")
-                                .setDescription(error.message)
+                                .setDescription((error.message || "不明なエラー"))
                                 .setColor(15548997)
                         ],
                         components: []
@@ -317,7 +317,7 @@ client.on("interactionCreate", async interaction => {
                         embeds: [
                             new MessageEmbed()
                                 .setTitle("エラー")
-                                .setDescription(error.message)
+                                .setDescription((error.message || "不明なエラー"))
                                 .setColor(15548997)
                         ],
                         components: []
@@ -336,7 +336,7 @@ client.on("interactionCreate", async interaction => {
                                     embeds: [
                                         new MessageEmbed()
                                             .setTitle("エラー")
-                                            .setDescription(error.message)
+                                            .setDescription((error.message || "不明なエラー"))
                                             .setColor(15548997)
                                     ],
                                     components: []
@@ -438,7 +438,7 @@ client.on("interactionCreate", async interaction => {
                         embeds: [
                             new MessageEmbed()
                                 .setTitle("エラー")
-                                .setDescription(error.message)
+                                .setDescription((error.message || "不明なエラー"))
                                 .setColor(15548997)
                         ],
                         components: []
@@ -451,7 +451,7 @@ client.on("interactionCreate", async interaction => {
                             embeds: [
                                 new MessageEmbed()
                                     .setTitle("エラー")
-                                    .setDescription(error.message)
+                                    .setDescription((error.message || "不明なエラー"))
                                     .setColor(15548997)
                             ],
                             components: []
@@ -482,7 +482,7 @@ client.on("interactionCreate", async interaction => {
                                         embeds: [
                                             new MessageEmbed()
                                                 .setTitle("エラー")
-                                                .setDescription(error.message)
+                                                .setDescription((error.message || "不明なエラー"))
                                                 .setColor(15548997)
                                         ],
                                         components: []
@@ -503,7 +503,7 @@ client.on("interactionCreate", async interaction => {
                                     embeds: [
                                         new MessageEmbed()
                                             .setTitle("エラー")
-                                            .setDescription(error.message)
+                                            .setDescription((error.message || "不明なエラー"))
                                             .setColor(15548997)
                                     ],
                                     components: []
@@ -589,7 +589,7 @@ client.on("interactionCreate", async interaction => {
                         embeds: [
                             new MessageEmbed()
                                 .setTitle("エラー")
-                                .setDescription(error.message)
+                                .setDescription((error.message || "不明なエラー"))
                                 .setColor(15548997)
                         ],
                         components: []
