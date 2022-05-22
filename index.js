@@ -66,7 +66,7 @@ process.on("uncaughtException", (error) => {
         embeds: [
             new MessageEmbed()
                 .setTitle("エラー")
-                .setDescription((error.message || "不明なエラー"))
+                .setDescription((error.message) ? error.message : "不明なエラー")
                 .setColor(15548997)
         ],
         components: []
